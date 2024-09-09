@@ -184,9 +184,9 @@ install() {
   read -n1 -r -p "Night Light is ready to be installed, press any key to continue..."
   echo ""
   download_files
-  ln -sfn "$HOME"/.swa/swa.sh "$HOME"/.local/bin/swa
-  chmod +x "$HOME"/.swa/swa.sh
-  chmod +x "$HOME"/.swa/swa_config.sh
+  ln -sfn "${swa_folder}"/swa.sh "$HOME"/.local/bin/swa
+  chmod +x "${swa_folder}"/swa.sh
+  chmod +x "${swa_folder}"/swa_config.sh
   "$HOME"/.local/bin/swa -c
   sed -i "s|/usr/local/bin/swa|$HOME/.local/bin/swa|g" "$HOME"/.config/systemd/user/swa.service
   systemctl --user enable swa.service &&
