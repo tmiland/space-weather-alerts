@@ -120,12 +120,7 @@ auto-run() {
           ;;
       esac
       # Generate images used in notification
-      if [[ ! -f "$swa_folder/assets/$noaa_scale.png" ]]
-      then
-        noaa_scale_img="https://raw.githubusercontent.com/tmiland/Space-Weather-Alerts/main/assets/$noaa_scale.png"
-      else
-        noaa_scale_img="$swa_folder/assets/$noaa_scale.png"
-      fi
+      noaa_scale_img="$swa_folder/assets/$noaa_scale.png"
       # Alert title
       alert_title=$(cat "$swa_alert" | grep "WATCH:" | sed "s|WATCH: ||g")
       # Alert message
@@ -144,9 +139,7 @@ auto-run() {
 }
 
 install() {
-  url=https://github.com/tmiland/Space-Weather-Alerts/raw/main
-  swa_url=$url/swa.sh
-  swa_service=$url/swa.service
+  swa_service=swa.service
   systemd_user_folder=$HOME/.config/systemd/user
   if ! [[ -d $systemd_user_folder ]]
   then
@@ -163,7 +156,7 @@ install() {
   UPDATE="apt-get -o Dpkg::Progress-Fancy="1" update -qq"
   PKGCHK="dpkg -s"
 
-  PKGS="screen libnotify-bin"
+  PKGS="git screen libnotify-bin"
 
   echo -e "Setting up Dependencies"
   if ! ${PKGCHK} ${PKGS} >/dev/null 2>&1; then
@@ -174,36 +167,28 @@ install() {
   fi
 
   download_files() {
-    if [[ $(command -v 'curl') ]]; then
-      mkdir -p "${swa_folder}"/assets
-      curl -fsSLk "$swa_url" > "${swa_folder}"/swa.sh
-      curl -fsSLk "$swa_service" > "$systemd_user_folder"/swa.service
-    elif [[ $(command -v 'wget') ]]; then
-      mkdir -p "${swa_folder}"/assets
-      wget -q "$swa_url" -O "${swa_folder}"/swa.sh
-      wget -q "$swa_service" -O "$systemd_user_folder"/swa.service
-    else
-      echo -e "${RED}${ERROR} This script requires curl or wget.\nProcess aborted${NC}"
-      exit 0
-    fi
+      mkdir -p "${swa_folder}"
+      cd $swa_folder || exit 1
+      echo -e "Downloading Space Weather Alerts from GitHub"
+      git clone https://github.com/tmiland/Space-Weather-Alerts.git "${swa_folder}"
   }
   echo ""
-  read -n1 -r -p "Night Light is ready to be installed, press any key to continue..."
+  read -n1 -r -p "Space Weather Alerts is ready to be installed, press any key to continue..."
   echo ""
   download_files
   ln -sfn "${swa_folder}"/swa.sh "$HOME"/.local/bin/swa
   chmod +x "${swa_folder}"/swa.sh
-  sed -i "s|/usr/local/bin/swa|$HOME/.local/bin/swa|g" "$HOME"/.config/systemd/user/swa.service
-  systemctl --user enable swa.service &&
-  systemctl --user start swa.service &&
-  systemctl --user status swa.service --no-pager
+  sed -i "s|/usr/local/bin/swa|$HOME/.local/bin/swa|g" "$HOME"/.config/systemd/user/"$swa_service"
+  systemctl --user enable "$swa_service" &&
+  systemctl --user start "$swa_service" &&
+  systemctl --user status "$swa_service" --no-pager
   if [ $? -eq 0 ]
   then
     echo "Install finished, enjoy..."
     echo "You can resume screen with 'screen -r swa' "
     echo "Restart service with 'systemdctl --user restart swa' "
   else
-    echo "ERROR: Some thing went wong..."
+    echo "ERROR: Some thing went wrong..."
   fi
 }
 
@@ -213,8 +198,8 @@ uninstall() {
   echo ""
   rm -rf "$swa_folder"
   rm -rf "$HOME"/.local/bin/swa
-  systemctl --user disable swa.service
-  rm -rf "$HOME"/.config/systemd/user/swa.service
+  systemctl --user disable "$swa_service"
+  rm -rf "$HOME"/.config/systemd/user/"$swa_service"
   echo "Uninstall finished, have a good day..."
 }
 
