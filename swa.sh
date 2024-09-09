@@ -178,6 +178,7 @@ install() {
   download_files
   ln -sfn "${swa_folder}"/swa.sh "$HOME"/.local/bin/swa
   chmod +x "${swa_folder}"/swa.sh
+  cp -rp "${swa_folder}"/"$swa_service" "$HOME"/.config/systemd/user/"$swa_service"
   sed -i "s|/usr/local/bin/swa|$HOME/.local/bin/swa|g" "$HOME"/.config/systemd/user/"$swa_service"
   systemctl --user enable "$swa_service" &&
   systemctl --user start "$swa_service" &&
