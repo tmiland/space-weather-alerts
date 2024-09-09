@@ -2,13 +2,17 @@
  
 Script to get [NOAA Space Weather Alerts](https://www.swpc.noaa.gov/products/alerts-watches-and-warnings)
 
-Get NOAA Space Weather alerts straight to your dekstop
+Get NOAA Space Weather alerts straight to your desktop
 
 <a href="https://raw.githubusercontent.com/tmiland/Space-Weather-Alerts/main/assets/desktop_alert_full.png">![desktop_alert_full](https://raw.githubusercontent.com/tmiland/Space-Weather-Alerts/main/assets/desktop_alert_full.png)</a>
 
-## Install 
+### Installation
 
-- WIP
+Download and install
+
+```bash
+wget -qO- https://github.com/tmiland/Space-Weather-Alerts/raw/main/swa.sh | bash -s -- -i
+```
 
 ## Donations
 <a href="https://coindrop.to/tmiland" target="_blank"><img src="https://coindrop.to/embed-button.png" style="border-radius: 10px; height: 57px !important;width: 229px !important;" alt="Coindrop.to me"></img></a>
