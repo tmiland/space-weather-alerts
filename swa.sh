@@ -7,7 +7,7 @@
 ######################################################################
 ####                           swa.sh                             ####
 ####            Script to get NOAA Space Weather Alerts           ####
-####    Get NOAA Space Weather alerts straight to your dekstop    ####
+####    Get NOAA Space Weather alerts straight to your desktop    ####
 ####                   Maintained by @tmiland                     ####
 ######################################################################
 
@@ -136,6 +136,93 @@ auto-run() {
     fi
     sleep $duration # request alert once / minute.
   done # End of forever loop
+}
+
+install() {
+  url=https://github.com/tmiland/Space-Weather-Alerts/raw/main
+  swa_url=$url/swa.sh
+  swa_service=$url/swa.service
+  systemd_user_folder=$HOME/.config/systemd/user
+  if ! [[ -d $systemd_user_folder ]]
+  then
+    mkdir -p "$systemd_user_folder"
+  fi
+  local_bin_folder=$HOME/.local/bin
+  if ! [[ -d $local_bin_folder ]]
+  then
+    mkdir -p "$local_bin_folder"
+  fi
+
+  SUDO="sudo"
+  INSTALL="apt-get -o Dpkg::Progress-Fancy="1" install -qq"
+  UPDATE="apt-get -o Dpkg::Progress-Fancy="1" update -qq"
+  PKGCHK="dpkg -s"
+
+  PKGS="screen libnotify-bin"
+
+  echo -e "Setting up Dependencies"
+  if ! ${PKGCHK} ${PKGS} >/dev/null 2>&1; then
+    ${UPDATE}
+    for i in ${PKGS}; do
+      ${SUDO} ${INSTALL} $i 2> /dev/null
+    done
+  fi
+
+  download_files() {
+    if [[ $(command -v 'curl') ]]; then
+      curl -fsSLk "$swa_url" > "${swa_folder}"/swa.sh
+      curl -fsSLk "$swa_service" > "$systemd_user_folder"/swa.service
+    elif [[ $(command -v 'wget') ]]; then
+      wget -q "$swa_url" -O "${swa_folder}"/swa.sh
+      wget -q "$swa_service" -O "$systemd_user_folder"/swa.service
+    else
+      echo -e "${RED}${ERROR} This script requires curl or wget.\nProcess aborted${NC}"
+      exit 0
+    fi
+  }
+  echo ""
+  read -n1 -r -p "Night Light is ready to be installed, press any key to continue..."
+  echo ""
+  download_files
+  ln -sfn "$HOME"/.swa/swa.sh "$HOME"/.local/bin/swa
+  chmod +x "$HOME"/.swa/swa.sh
+  chmod +x "$HOME"/.swa/swa_config.sh
+  "$HOME"/.local/bin/swa -c
+  sed -i "s|/usr/local/bin/swa|$HOME/.local/bin/swa|g" "$HOME"/.config/systemd/user/swa.service
+  systemctl --user enable swa.service &&
+  systemctl --user start swa.service &&
+  systemctl --user status swa.service --no-pager
+  if [ $? -eq 0 ]
+  then
+    echo "Install finished, enjoy..."
+    echo "You can resume screen with 'screen -r swa' "
+    echo "Restart service with 'systemdctl --user restart swa' "
+  else
+    echo "ERROR: Some thing went wong..."
+  fi
+}
+
+uninstall() {
+  echo ""
+  read -n1 -r -p "Night Light is ready to be uninstalled, press any key to continue..."
+  echo ""
+  rm -rf "$swa_folder"
+  rm -rf "$HOME"/.local/bin/swa
+  systemctl --user disable swa.service
+  rm -rf "$HOME"/.config/systemd/user/swa.service
+  echo "Uninstall finished, have a good day..."
+}
+
+usage() {
+  # shellcheck disable=SC2046
+  printf "Usage: %s %s [options]\\n" "" $(basename "$0")
+  echo
+  printf "  --alert             | -a           display alerts\\n"
+  printf "  --auto-run          | -ar          auto run\\n"
+  printf "  --install           | -i           install\\n"
+  printf "  --uninstall         | -u           uninstall\\n"
+  printf "\\n"
+  echo
 }
 
 ARGS=()
