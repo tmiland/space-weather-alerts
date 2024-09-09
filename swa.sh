@@ -175,13 +175,13 @@ install() {
       curl -fsSLk "$swa_service" > "$systemd_user_folder"/swa.service
       for p in G1.png G2.png G3.png G4.png G5.png R1.png R2.png R3.png R4.png R5.png S1.png S2.png S3.png S4.png S5.png
       do
-        curl -fsSLk https://github.com/tmiland/Space-Weather-Alerts/tree/main/assets/$p > "${swa_folder}"/assets/$p
+        curl -fsSLk https://raw.githubusercontent.com/tmiland/Space-Weather-Alerts/main/assets/$p > "${swa_folder}"/assets/$p
       done
     elif [[ $(command -v 'wget') ]]; then
       mkdir -p "${swa_folder}"/assets
       for p in G1.png G2.png G3.png G4.png G5.png R1.png R2.png R3.png R4.png R5.png S1.png S2.png S3.png S4.png S5.png
       do
-        wget -q https://github.com/tmiland/Space-Weather-Alerts/tree/main/assets/$p -O "${swa_folder}"/assets/$p
+        wget -q https://raw.githubusercontent.com/tmiland/Space-Weather-Alerts/main/assets/$p -O "${swa_folder}"/assets/$p
       done
       wget -q "$swa_url" -O "${swa_folder}"/swa.sh
       wget -q "$swa_service" -O "$systemd_user_folder"/swa.service
