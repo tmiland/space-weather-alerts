@@ -182,7 +182,8 @@ auto-run() {
       then
         noaa_scale=R5
       fi
-
+      # Add received time to msg
+      sed -i "/Issue Time: /a Received Time: $(date)" "$swa_alert"
       # Generate images used in notification
       noaa_scale_img="$swa_folder/assets/new/$noaa_scale.png"
       # Alert title
