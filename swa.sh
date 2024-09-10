@@ -120,7 +120,7 @@ auto-run() {
           ;;
       esac
       # Generate images used in notification
-      noaa_scale_img="$swa_folder/assets/$noaa_scale.png"
+      noaa_scale_img="$swa_folder/assets/new/$noaa_scale.png"
       # Alert title
       alert_title=$(cat "$swa_alert" | grep "WATCH:" | sed "s|WATCH: ||g")
       # Alert message
