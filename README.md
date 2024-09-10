@@ -4,7 +4,7 @@ Script to get [NOAA Space Weather Alerts](https://www.swpc.noaa.gov/products/ale
 
 Get NOAA Space Weather alerts straight to your desktop
 
-<a href="https://raw.githubusercontent.com/tmiland/Space-Weather-Alerts/main/assets/desktop_alert_full.png">![desktop_alert_full](https://raw.githubusercontent.com/tmiland/Space-Weather-Alerts/main/assets/desktop_alert_full.png)</a>
+<a href="https://raw.githubusercontent.com/tmiland/Space-Weather-Alerts/main/assets/desktop_alert.png">![desktop_alert_full](https://raw.githubusercontent.com/tmiland/Space-Weather-Alerts/main/assets/desktop_alert.png)</a>
 
 ### Installation
 
