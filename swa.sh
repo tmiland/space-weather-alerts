@@ -86,13 +86,14 @@ auto-run() {
     alert_issue_time=$(alert $msg_num | grep "Issue Time:" | sed "s|Issue Time: ||g")
     local_alert_issue_time=$(cat "$swa_alert" | grep "Issue Time:" | sed "s|Issue Time: ||g")
     # If Issue Time is newer than local Issue Time
-    if [[ "$local_alert_issue_time" < "$alert_issue_time" ]]
+    if [[ "$local_alert_issue_time" != "$alert_issue_time" ]]
     then
       # Then run script
       alert $msg_num > "$swa_alert"
       # Get NOAA scale
       noaa_scale1=$(cat "$swa_alert"  | grep -Po "NOAA Scale: [A-z].*[0-9]" | grep -Po "[A-z][0-9]")
       noaa_scale2=$(cat "$swa_alert" | grep -Po "WATCH: [A-z].*[0-9]" | grep -Po "[A-z][0-9]")
+      noaa_k_index=$(cat "$swa_alert" | grep -Po "K-index of .*[0-9]" | grep -Po "[0-9]")
       # Switch based on noaa scale
       if [[ -n $noaa_scale1 ]]
       then
@@ -100,6 +101,12 @@ auto-run() {
       elif [[ -n $noaa_scale2 ]]
       then
         noaa_scale=$noaa_scale2
+      elif [[ -z $noaa_scale1 ]] || [[ -z $noaa_scale2 ]]
+      then
+        if [[ -n $noaa_k_index ]]
+        then
+          noaa_scale=$noaa_k_index
+        fi
       fi
       # Case for noaa scale
       case $noaa_scale in
@@ -117,6 +124,42 @@ auto-run() {
           ;;
         G1|S1|R1)
           scale=Minor
+          ;;
+        1)
+          scale=none
+          noaa_scale=G
+          ;;
+        2)
+          scale=none
+          noaa_scale=G
+          ;;
+        3)
+          scale=none
+          noaa_scale=G
+          ;;
+        4)
+          scale=none
+          noaa_scale=G
+          ;;
+        5)
+          scale=Minor
+          noaa_scale=G1
+          ;;
+        6)
+          scale=Moderate
+          noaa_scale=G2
+          ;;
+        7)
+          scale=Strong
+          noaa_scale=G3
+          ;;
+        8|9-)
+          scale=Severe
+          noaa_scale=G4
+          ;;
+        9o)
+          scale=Extreme
+          noaa_scale=G5
           ;;
       esac
       # Generate images used in notification
@@ -136,85 +179,6 @@ auto-run() {
     fi
     sleep $duration # request alert once / minute.
   done # End of forever loop
-}
-
-install() {
-  swa_service=swa.service
-  systemd_user_folder=$HOME/.config/systemd/user
-  if ! [[ -d $systemd_user_folder ]]
-  then
-    mkdir -p "$systemd_user_folder"
-  fi
-  local_bin_folder=$HOME/.local/bin
-  if ! [[ -d $local_bin_folder ]]
-  then
-    mkdir -p "$local_bin_folder"
-  fi
-
-  SUDO="sudo"
-  INSTALL="apt-get -o Dpkg::Progress-Fancy="1" install -qq"
-  UPDATE="apt-get -o Dpkg::Progress-Fancy="1" update -qq"
-  PKGCHK="dpkg -s"
-
-  PKGS="git screen libnotify-bin"
-
-  echo -e "Setting up Dependencies"
-  if ! ${PKGCHK} ${PKGS} >/dev/null 2>&1; then
-    ${UPDATE}
-    for i in ${PKGS}; do
-      ${SUDO} ${INSTALL} $i 2> /dev/null
-    done
-  fi
-
-  download_files() {
-      mkdir -p "${swa_folder}"
-      cd $swa_folder || exit 1
-      echo -e "Downloading Space Weather Alerts from GitHub"
-      git clone https://github.com/tmiland/Space-Weather-Alerts.git "${swa_folder}"
-  }
-  echo ""
-  read -n1 -r -p "Space Weather Alerts is ready to be installed, press any key to continue..."
-  echo ""
-  download_files
-  ln -sfn "${swa_folder}"/swa.sh "$HOME"/.local/bin/swa
-  chmod +x "${swa_folder}"/swa.sh
-  mkdir -p "$HOME"/.config/systemd/user
-  cp -rp "${swa_folder}"/"$swa_service" "$HOME"/.config/systemd/user/"$swa_service"
-  sed -i "s|/usr/local/bin/swa|$HOME/.local/bin/swa|g" "$HOME"/.config/systemd/user/"$swa_service"
-  systemctl --user enable "$swa_service" &&
-  systemctl --user start "$swa_service" &&
-  systemctl --user status "$swa_service" --no-pager
-  if [ $? -eq 0 ]
-  then
-    echo "Install finished, enjoy..."
-    echo "You can resume screen with 'screen -r swa' "
-    echo "Restart service with 'systemdctl --user restart swa' "
-  else
-    echo "ERROR: Some thing went wrong..."
-  fi
-}
-
-uninstall() {
-  echo ""
-  read -n1 -r -p "Night Light is ready to be uninstalled, press any key to continue..."
-  echo ""
-  rm -rf "$swa_folder"
-  rm -rf "$HOME"/.local/bin/swa
-  systemctl --user disable "$swa_service"
-  rm -rf "$HOME"/.config/systemd/user/"$swa_service"
-  echo "Uninstall finished, have a good day..."
-}
-
-usage() {
-  # shellcheck disable=SC2046
-  printf "Usage: %s %s [options]\\n" "" $(basename "$0")
-  echo
-  printf "  --alert             | -a           display alerts\\n"
-  printf "  --auto-run          | -ar          auto run\\n"
-  printf "  --install           | -i           install\\n"
-  printf "  --uninstall         | -u           uninstall\\n"
-  printf "\\n"
-  echo
 }
 
 ARGS=()
