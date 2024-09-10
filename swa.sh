@@ -94,6 +94,7 @@ auto-run() {
       noaa_scale1=$(cat "$swa_alert"  | grep -Po "NOAA Scale: [A-z].*[0-9]" | grep -Po "[A-z][0-9]")
       noaa_scale2=$(cat "$swa_alert" | grep -Po "WATCH: [A-z].*[0-9]" | grep -Po "[A-z][0-9]")
       noaa_k_index=$(cat "$swa_alert" | grep -Po "K-index of .*[0-9]" | grep -Po "[0-9]")
+      noaa_radio_emission=$(cat "$swa_alert" | grep -Po "Type (I|II|III|IV|V|VI|VII|VIII|IX) Radio Emission")
       # Switch based on noaa scale
       if [[ -n $noaa_scale1 ]]
       then
@@ -108,6 +109,7 @@ auto-run() {
           noaa_scale=$noaa_k_index
         fi
       fi
+
       # Case for noaa scale
       case $noaa_scale in
         G5|S5|R5)
@@ -162,6 +164,25 @@ auto-run() {
           noaa_scale=G5
           ;;
       esac
+
+      # noaa radio emission
+      if [[ $noaa_radio_emission =~ "Type I Radio Emission" ]]
+      then
+        noaa_scale=R1
+      elif [[ $noaa_radio_emission =~ "Type II Radio Emission" ]]
+      then
+        noaa_scale=R2
+      elif [[ $noaa_radio_emission =~ "Type III Radio Emission" ]]
+      then
+        noaa_scale=R3
+      elif [[ $noaa_radio_emission =~ "Type IV Radio Emission" ]]
+      then
+        noaa_scale=R4
+      elif [[ $noaa_radio_emission =~ "Type V Radio Emission" ]]
+      then
+        noaa_scale=R5
+      fi
+
       # Generate images used in notification
       noaa_scale_img="$swa_folder/assets/new/$noaa_scale.png"
       # Alert title
