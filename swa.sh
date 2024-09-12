@@ -47,6 +47,7 @@ then
   set -o nounset
   set -o xtrace
 fi
+date=$(TZ='Europe/Berlin' date)
 # Default duration (1 minute) to wait for new alerts
 duration=1
 # Default message to retrieve (0 is last)
@@ -182,8 +183,12 @@ auto-run() {
       then
         noaa_scale=R5
       fi
+      if [[ $(command -v 'timedatectl') ]]
+      then
+        date=$(timedatectl | grep "Local time" | tr -s ' ')
+      fi
       # Add received time to msg
-      sed -i "/Issue Time: /a Received Time: $(date)" "$swa_alert"
+      sed -i "/Issue Time: /a Received: $date" "$swa_alert"
       # Generate images used in notification
       noaa_scale_img="$swa_folder/assets/new/$noaa_scale.png"
       # Alert title
