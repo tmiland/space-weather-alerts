@@ -47,7 +47,9 @@ then
   set -o nounset
   set -o xtrace
 fi
-date=$(TZ='Europe/Berlin' date)
+# Get local timezone
+timezone=$(cat /etc/timezone)
+date=$(TZ="$timezone" date)
 # Default duration (1 minute) to wait for new alerts
 duration=1
 # Default message to retrieve (0 is last)
@@ -187,8 +189,78 @@ auto-run() {
       then
         date=$(timedatectl | grep "Local time" | tr -s ' ')
       fi
+      # timezone_short=$(timedatectl | grep "Time zone" | grep -Po "\([-A-Z]+" | sed "s|(||g")
+      # Get issued times
+      # valid_from=$(cat "$swa_alert" | grep "Valid From" | grep -Po "[[:digit:]]+ UTC")
+      # valid_to=$(cat "$swa_alert" | grep "Valid To" | grep -Po "[[:digit:]]+ UTC")
+      # issue_time=$(cat "$swa_alert" | grep "Issue Time" | grep -Po "[[:digit:]]+ UTC")
+      get_time() {
+        cat "$swa_alert" | grep "$1"
+      }
+      # Get Valid From in pieces
+      valid_from_month=$(get_time "Valid From" | cut -d ' ' -f4)
+      valid_from_day=$(get_time "Valid From" | cut -d ' ' -f5)
+      valid_from_year=$(get_time "Valid From" | cut -d ' ' -f3)
+      valid_from_time=$(get_time "Valid From" | cut -d ' ' -f6)
+      # Put Valid From pieces together
+      valid_from=$(echo "$valid_from_month" "$valid_from_day", "$valid_from_year" "$valid_from_time")
+      # Get Valid To in pieces
+      valid_to_month=$(get_time "Valid To" | cut -d ' ' -f4)
+      valid_to_day=$(get_time "Valid To" | cut -d ' ' -f5)
+      valid_to_year=$(get_time "Valid To" | cut -d ' ' -f3)
+      valid_to_time=$(get_time "Valid To" | cut -d ' ' -f6)
+      # Put Valid To pieces together
+      valid_to=$(echo "$valid_to_month" "$valid_to_day", "$valid_to_year" "$valid_to_time")
+      # Get issue time in pieces
+      issue_time_month=$(get_time "Issue Time" | cut -d ' ' -f4)
+      issue_time_day=$(get_time "Issue Time" | cut -d ' ' -f5)
+      issue_time_year=$(get_time "Issue Time" | cut -d ' ' -f3)
+      issue_time_time=$(get_time "Issue Time" | cut -d ' ' -f6)
+      # Put issue time pieces together
+      issue_time=$(echo "$issue_time_month" "$issue_time_day", "$issue_time_year" "$issue_time_time")
+      # Get Now Valid Until in pieces
+      now_valid_until_month=$(get_time "Now Valid Until" | cut -d ' ' -f5)
+      now_valid_until_day=$(get_time "Now Valid Until" | cut -d ' ' -f6)
+      now_valid_until_year=$(get_time "Now Valid Until" | cut -d ' ' -f4)
+      now_valid_until_time=$(get_time "Now Valid Until" | cut -d ' ' -f7)
+      # Put Now Valid Until pieces together
+      now_valid_until=$(echo "$now_valid_until_month" "$now_valid_until_day", "$now_valid_until_year" "$now_valid_until_time")
+      # Get Threshold Reached in pieces
+      threshold_reached_month=$(get_time "Threshold Reached" | cut -d ' ' -f4)
+      threshold_reached_day=$(get_time "Threshold Reached" | cut -d ' ' -f5)
+      threshold_reached_year=$(get_time "Threshold Reached" | cut -d ' ' -f3)
+      threshold_reached_time=$(get_time "Threshold Reached" | cut -d ' ' -f6)
+      # Put Threshold Reached pieces together
+      threshold_reached=$(echo "$threshold_reached_month" "$threshold_reached_day", "$threshold_reached_year" "$threshold_reached_time")
+
+      # Convert times to local timezone
+      if [[ -n "$valid_from_month" ]]
+      then
+        new_valid_from=$(TZ="$timezone" date -d "$valid_from" +"%Y %b %d %H%M %Z")
+        sed -i "s|Valid From: .*|Valid From: $new_valid_from|g" "$swa_alert"
+      fi
+      if [[ -n "$valid_to_month" ]]
+      then
+        new_valid_to=$(TZ="$timezone" date -d "$valid_to" +"%Y %b %d %H%M %Z")
+        sed -i "s|Valid To: .*|Valid To: $new_valid_to|g" "$swa_alert"
+      fi
+      if [[ -n "$issue_time_month" ]]
+      then
+        new_issue_time=$(TZ="$timezone" date -d "$issue_time" +"%Y %b %d %H%M %Z")
+        sed -i "s|Issue Time: .*|Issue Time: $new_issue_time|g" "$swa_alert"
+      fi
+      if [[ -n "$now_valid_until_month" ]]
+      then
+        new_now_valid_until=$(TZ="$timezone" date -d "$now_valid_until" +"%Y %b %d %H%M %Z")
+        sed -i "s|Now Valid Until: .*|Now Valid Until: $new_now_valid_until|g" "$swa_alert"
+      fi
+      if [[ -n "$threshold_reached_month" ]]
+      then
+        new_threshold_reached=$(TZ="$timezone" date -d "$threshold_reached" +"%Y %b %d %H%M %Z")
+        sed -i "s|Threshold Reached: .*|Threshold Reached: $new_threshold_reached|g" "$swa_alert"
+      fi
       # Add received time to msg
-      sed -i "/Issue Time: /a Received: $date" "$swa_alert"
+      sed -i "/Issue Time: /a Received $date" "$swa_alert"
       # Generate images used in notification
       noaa_scale_img="$swa_folder/assets/new/$noaa_scale.png"
       # Alert title
