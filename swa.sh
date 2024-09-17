@@ -48,7 +48,7 @@ then
   set -o xtrace
 fi
 # Get local timezone
-timezone=$(cat /etc/timezone)
+timezone=$(< /etc/timezone)
 date=$(TZ="$timezone" date)
 # Default duration (1 minute) to wait for new alerts
 duration=1
@@ -89,17 +89,17 @@ auto-run() {
     # alert_issue_time=$(alert $msg_num | grep "Issue Time:" | sed "s|Issue Time: ||g")
     # local_alert_issue_time=$(cat "$swa_alert" | grep "Issue Time:" | sed "s|Issue Time: ||g")
     alert_serial_number=$(alert $msg_num | grep "Serial Number:" | sed "s|Serial Number: ||g")
-    local_alert_serial_number=$(cat "$swa_alert" | grep "Serial Number:" | sed "s|Serial Number: ||g")
+    local_alert_serial_number=$(grep "Serial Number:" "$swa_alert" | sed "s|Serial Number: ||g")
     # If Issue Time is newer than local Issue Time
     if [[ "$local_alert_serial_number" != "$alert_serial_number" ]]
     then
       # Then run script
       alert $msg_num > "$swa_alert"
       # Get NOAA scale
-      noaa_scale1=$(cat "$swa_alert"  | grep -Po "NOAA Scale: [A-z].*[0-9]" | grep -Po "[A-z][0-9]")
-      noaa_scale2=$(cat "$swa_alert" | grep -Po "WATCH: [A-z].*[0-9]" | grep -Po "[A-z][0-9]")
-      noaa_k_index=$(cat "$swa_alert" | grep -Po "K-index of .*[0-9]" | grep -Po "[0-9]")
-      noaa_radio_emission=$(cat "$swa_alert" | grep -Po "Type (I|II|III|IV|V|VI|VII|VIII|IX) Radio Emission")
+      noaa_scale1=$(grep -Po "NOAA Scale: [A-z].*[0-9]" "$swa_alert" | grep -Po "[A-z][0-9]")
+      noaa_scale2=$(grep -Po "WATCH: [A-z].*[0-9]" "$swa_alert" | grep -Po "[A-z][0-9]")
+      noaa_k_index=$(grep -Po "K-index of .*[0-9]" "$swa_alert" | grep -Po "[0-9]")
+      noaa_radio_emission=$(grep -Po "Type (I|II|III|IV|V|VI|VII|VIII|IX) Radio Emission" "$swa_alert")
       # Switch based on noaa scale
       if [[ -n $noaa_scale1 ]]
       then
@@ -197,7 +197,7 @@ auto-run() {
       # valid_to=$(cat "$swa_alert" | grep "Valid To" | grep -Po "[[:digit:]]+ UTC")
       # issue_time=$(cat "$swa_alert" | grep "Issue Time" | grep -Po "[[:digit:]]+ UTC")
       get_time() {
-        cat "$swa_alert" | grep "$1"
+        grep "$1" "$swa_alert"
       }
       # Get Valid From in pieces
       valid_from_month=$(get_time "Valid From" | cut -d ' ' -f4)
@@ -266,9 +266,9 @@ auto-run() {
       # Generate images used in notification
       noaa_scale_img="$swa_folder/assets/new/$noaa_scale.png"
       # Alert title
-      alert_title=$(cat "$swa_alert" | grep "WATCH:" | sed "s|WATCH: ||g")
+      alert_title=$(grep "WATCH:" "$swa_alert" | sed "s|WATCH: ||g")
       # Alert message
-      alert_message=$(cat "$swa_alert")
+      alert_message=$(< "$swa_alert")
       # Print alert
       echo "$alert_title"
       printf "\n"
