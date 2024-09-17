@@ -86,10 +86,12 @@ auto-run() {
   while true
   do
     # Alert variables used for comparison
-    alert_issue_time=$(alert $msg_num | grep "Issue Time:" | sed "s|Issue Time: ||g")
-    local_alert_issue_time=$(cat "$swa_alert" | grep "Issue Time:" | sed "s|Issue Time: ||g")
+    # alert_issue_time=$(alert $msg_num | grep "Issue Time:" | sed "s|Issue Time: ||g")
+    # local_alert_issue_time=$(cat "$swa_alert" | grep "Issue Time:" | sed "s|Issue Time: ||g")
+    alert_serial_number=$(alert $msg_num | grep "Serial Number:" | sed "s|Serial Number: ||g")
+    local_alert_serial_number=$(cat "$swa_alert" | grep "Serial Number:" | sed "s|Serial Number: ||g")
     # If Issue Time is newer than local Issue Time
-    if [[ "$local_alert_issue_time" != "$alert_issue_time" ]]
+    if [[ "$local_alert_serial_number" != "$alert_serial_number" ]]
     then
       # Then run script
       alert $msg_num > "$swa_alert"
@@ -226,10 +228,10 @@ auto-run() {
       # Put Now Valid Until pieces together
       now_valid_until=$(echo "$now_valid_until_month" "$now_valid_until_day", "$now_valid_until_year" "$now_valid_until_time")
       # Get Threshold Reached in pieces
-      threshold_reached_month=$(get_time "Threshold Reached" | cut -d ' ' -f4)
-      threshold_reached_day=$(get_time "Threshold Reached" | cut -d ' ' -f5)
-      threshold_reached_year=$(get_time "Threshold Reached" | cut -d ' ' -f3)
-      threshold_reached_time=$(get_time "Threshold Reached" | cut -d ' ' -f6)
+      threshold_reached_month=$(get_time "Threshold Reached" | sed 's/^ *//g' | cut -d ' ' -f4)
+      threshold_reached_day=$(get_time "Threshold Reached" | sed 's/^ *//g' | cut -d ' ' -f5)
+      threshold_reached_year=$(get_time "Threshold Reached" | sed 's/^ *//g' | cut -d ' ' -f3)
+      threshold_reached_time=$(get_time "Threshold Reached" | sed 's/^ *//g' | cut -d ' ' -f6)
       # Put Threshold Reached pieces together
       threshold_reached=$(echo "$threshold_reached_month" "$threshold_reached_day", "$threshold_reached_year" "$threshold_reached_time")
 
