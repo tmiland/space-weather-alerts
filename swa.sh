@@ -67,7 +67,6 @@ fi
 swa_tmp=$swa_folder/swa_tmp.json
 # swa alert file (json converted)
 swa_alert=$swa_folder/swa_alert.json
-
 # json function
 json() {
   # Run curl to tmp file
@@ -86,8 +85,6 @@ auto-run() {
   while true
   do
     # Alert variables used for comparison
-    # alert_issue_time=$(alert $msg_num | grep "Issue Time:" | sed "s|Issue Time: ||g")
-    # local_alert_issue_time=$(cat "$swa_alert" | grep "Issue Time:" | sed "s|Issue Time: ||g")
     alert_serial_number=$(alert $msg_num | grep "Serial Number:" | sed "s|Serial Number: ||g")
     local_alert_serial_number=$(grep "Serial Number:" "$swa_alert" | sed "s|Serial Number: ||g")
     # If Issue Time is newer than local Issue Time
@@ -114,7 +111,6 @@ auto-run() {
           noaa_scale=$noaa_k_index
         fi
       fi
-
       # Case for noaa scale
       case $noaa_scale in
         G5|S5|R5)
@@ -169,7 +165,6 @@ auto-run() {
           noaa_scale=G5
           ;;
       esac
-
       # noaa radio emission
       if [[ $noaa_radio_emission =~ "Type I Radio Emission" ]]
       then
@@ -191,11 +186,7 @@ auto-run() {
       then
         date=$(timedatectl | grep "Local time" | tr -s ' ')
       fi
-      # timezone_short=$(timedatectl | grep "Time zone" | grep -Po "\([-A-Z]+" | sed "s|(||g")
-      # Get issued times
-      # valid_from=$(cat "$swa_alert" | grep "Valid From" | grep -Po "[[:digit:]]+ UTC")
-      # valid_to=$(cat "$swa_alert" | grep "Valid To" | grep -Po "[[:digit:]]+ UTC")
-      # issue_time=$(cat "$swa_alert" | grep "Issue Time" | grep -Po "[[:digit:]]+ UTC")
+      # Get time function
       get_time() {
         grep "$1" "$swa_alert"
       }
@@ -234,7 +225,27 @@ auto-run() {
       threshold_reached_time=$(get_time "Threshold Reached" | sed 's/^ *//g' | cut -d ' ' -f6)
       # Put Threshold Reached pieces together
       threshold_reached=$(echo "$threshold_reached_month" "$threshold_reached_day", "$threshold_reached_year" "$threshold_reached_time")
-
+      # Get Begin Time in pieces
+      begin_time_month=$(get_time "Begin Time" | sed 's/^ *//g' | cut -d ' ' -f4)
+      begin_time_day=$(get_time "Begin Time" | sed 's/^ *//g' | cut -d ' ' -f5)
+      begin_time_year=$(get_time "Begin Time" | sed 's/^ *//g' | cut -d ' ' -f3)
+      begin_time_time=$(get_time "Begin Time" | sed 's/^ *//g' | cut -d ' ' -f6)
+      # Put Begin Time pieces together
+      begin_time=$(echo "$begin_time_month" "$begin_time_day", "$begin_time_year" "$begin_time_time")
+      # Get Maximum Time in pieces
+      maximum_time_month=$(get_time "Maximum Time" | sed 's/^ *//g' | cut -d ' ' -f4)
+      maximum_time_day=$(get_time "Maximum Time" | sed 's/^ *//g' | cut -d ' ' -f5)
+      maximum_time_year=$(get_time "Maximum Time" | sed 's/^ *//g' | cut -d ' ' -f3)
+      maximum_time_time=$(get_time "Maximum Time" | sed 's/^ *//g' | cut -d ' ' -f6)
+      # Put Maximum Time pieces together
+      maximum_time=$(echo "$maximum_time_month" "$maximum_time_day", "$maximum_time_year" "$maximum_time_time")
+      # Get End Time in pieces
+      end_time_month=$(get_time "End Time" | sed 's/^ *//g' | cut -d ' ' -f4)
+      end_time_day=$(get_time "End Time" | sed 's/^ *//g' | cut -d ' ' -f5)
+      end_time_year=$(get_time "End Time" | sed 's/^ *//g' | cut -d ' ' -f3)
+      end_time_time=$(get_time "End Time" | sed 's/^ *//g' | cut -d ' ' -f6)
+      # Put End Time pieces together
+      end_time=$(echo "$end_time_month" "$end_time_day", "$end_time_year" "$end_time_time")
       # Convert times to local timezone
       if [[ -n "$valid_from_month" ]]
       then
@@ -261,6 +272,21 @@ auto-run() {
         new_threshold_reached=$(TZ="$timezone" date -d "$threshold_reached" +"%Y %b %d %H%M %Z")
         sed -i "s|Threshold Reached: .*|Threshold Reached: $new_threshold_reached|g" "$swa_alert"
       fi
+      if [[ -n "$begin_time_month" ]]
+      then
+        new_begin_time=$(TZ="$timezone" date -d "$begin_time" +"%Y %b %d %H%M %Z")
+        sed -i "s|Begin Time: .*|Begin Time: $new_begin_time|g" "$swa_alert"
+      fi
+      if [[ -n "$maximum_time_month" ]]
+      then
+        new_maximum_time=$(TZ="$timezone" date -d "$maximum_time" +"%Y %b %d %H%M %Z")
+        sed -i "s|Maximum Time: .*|Maximum Time: $new_maximum_time|g" "$swa_alert"
+      fi
+      if [[ -n "$end_time_month" ]]
+      then
+        new_end_time=$(TZ="$timezone" date -d "$end_time" +"%Y %b %d %H%M %Z")
+        sed -i "s|End Time: .*|End Time: $new_end_time|g" "$swa_alert"
+      fi
       # Add received time to msg
       sed -i "/Issue Time: /a Received $date" "$swa_alert"
       # Generate images used in notification
@@ -274,7 +300,7 @@ auto-run() {
       printf "\n"
       echo "$alert_message"
       # Send notification to desktop
-      notify-send --category=$scale --icon=$noaa_scale_img "Space Weather Alert" "$alert_message\n$alert_title"
+      notify-send --app-name="Space Weather Alert" --category=$scale --icon=$noaa_scale_img "Space Weather Alert" "$alert_message\n$alert_title"
     else
       echo "No new alerts. Waiting $duration seconds for new alerts..."
     fi
