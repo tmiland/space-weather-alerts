@@ -332,7 +332,7 @@ uninstall() {
     sudo rm /usr/local/bin/space_weather_alerts
     systemctl disable space_weather_alerts.service
     systemctl stop space_weather_alerts.service
-    sudo rm /etc/systemd/system/space_weather_alerts.service
+    rm "$HOME"/.config/systemd/user/space_weather_alerts.service
     echo "Done."
     exit 0
   fi
