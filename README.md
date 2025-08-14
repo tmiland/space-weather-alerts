@@ -4,7 +4,7 @@ Script to get [NOAA Space Weather Alerts](https://www.swpc.noaa.gov/products/ale
 
 Get NOAA Space Weather alerts straight to your desktop
 
-<a href="https://raw.githubusercontent.com/tmiland/Space-Weather-Alerts/main/assets/desktop_alert.png">![desktop_alert_full](https://raw.githubusercontent.com/tmiland/Space-Weather-Alerts/main/assets/desktop_alert.png)</a>
+<a href="https://raw.githubusercontent.com/tmiland/Space-Weather-Alerts/main/assets/desktop_alert.png">![desktop_alert_full](https://raw.githubusercontent.com/tmiland/space-weather-alerts/main/assets/desktop_alert.png)</a>
 
 ### Installation
 
@@ -23,6 +23,6 @@ wget -qO- https://github.com/tmiland/Space-Weather-Alerts/raw/main/swa.sh | bash
 
 ### License
 
-[![MIT License Image](https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/MIT_logo.svg/220px-MIT_logo.svg.png)](https://github.com/tmiland/Space-Weather-Alerts/blob/master/LICENSE)
+[![MIT License Image](https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/MIT_logo.svg/220px-MIT_logo.svg.png)](https://github.com/tmiland/space-weather-alerts/blob/master/LICENSE)
 
 [MIT License](https://github.com/tmiland/bible.sh/blob/master/LICENSE)
