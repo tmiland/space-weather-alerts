@@ -308,6 +308,32 @@ auto-run() {
   done # End of forever loop
 }
 
+install() {
+  echo "Installing files to $swa_folder..."
+  curl -sSL https://github.com/tmiland/space-weather-alerts/raw/refs/heads/main/space_weather_alerts.sh > "$swa_folder"/space_weather_alerts.sh \
+  && chmod +x "$swa_folder"/space_weather_alerts.sh
+  sudo sn -sfn "$swa_folder"/space_weather_alerts.sh /usr/local/bin/space_weather_alerts
+  echo "Enabling systemd service"
+  curl -sSL https://github.com/tmiland/space-weather-alerts/raw/refs/heads/main/space_weather_alerts.service > /etc/systemd/system/space_weather_alerts.service
+  systemctl enable space_weather_alerts.service
+  systemctl start space_weather_alerts.service
+  echo "Done."
+}
+
+uninstall() {
+  if [ -d "$swa_folder" ]
+  then
+    echo "Removing files in $swa_folder..."
+    rm -rf "$swa_folder"
+    sudo rm /usr/local/bin/space_weather_alerts
+    systemctl disable space_weather_alerts.service
+    systemctl stop space_weather_alerts.service
+    sudo rm /etc/systemd/system/space_weather_alerts.service
+    echo "Done."
+    exit 0
+  fi
+}
+
 ARGS=()
 while [[ $# -gt 0 ]]
 do
