@@ -314,7 +314,11 @@ install() {
   && chmod +x "$swa_folder"/space_weather_alerts.sh
   sudo sn -sfn "$swa_folder"/space_weather_alerts.sh /usr/local/bin/space_weather_alerts
   echo "Enabling systemd service"
-  curl -sSL https://github.com/tmiland/space-weather-alerts/raw/refs/heads/main/space_weather_alerts.service > /etc/systemd/system/space_weather_alerts.service
+  if ! [[ -d "$HOME"/.config/systemd/user ]]
+  then
+    mkdir -p "$HOME"/.config/systemd/user
+  fi
+  curl -sSL https://github.com/tmiland/space-weather-alerts/raw/refs/heads/main/space_weather_alerts.service > "$HOME"/.config/systemd/user/space_weather_alerts.service
   systemctl enable space_weather_alerts.service
   systemctl start space_weather_alerts.service
   echo "Done."
