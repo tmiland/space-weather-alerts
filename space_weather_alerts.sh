@@ -324,8 +324,8 @@ install() {
     mkdir -p "$HOME"/.config/systemd/user
   fi
   cp -rp  "$swa_folder"/space_weather_alerts.service "$HOME"/.config/systemd/user/space_weather_alerts.service
-  systemctl enable space_weather_alerts.service
-  systemctl start space_weather_alerts.service
+  systemctl --user enable space_weather_alerts.service
+  systemctl --user start space_weather_alerts.service
   echo "Done."
 }
 
