@@ -312,7 +312,7 @@ install() {
   echo "Installing files to $swa_folder..."
   curl -sSL https://github.com/tmiland/space-weather-alerts/raw/refs/heads/main/space_weather_alerts.sh > "$swa_folder"/space_weather_alerts.sh \
   && chmod +x "$swa_folder"/space_weather_alerts.sh
-  sudo sn -sfn "$swa_folder"/space_weather_alerts.sh /usr/local/bin/space_weather_alerts
+  sudo ln -sfn "$swa_folder"/space_weather_alerts.sh /usr/local/bin/space_weather_alerts
   echo "Enabling systemd service"
   if ! [[ -d "$HOME"/.config/systemd/user ]]
   then
