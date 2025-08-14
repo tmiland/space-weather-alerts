@@ -309,16 +309,21 @@ auto-run() {
 }
 
 install() {
-  echo "Installing files to $swa_folder..."
-  curl -sSL https://github.com/tmiland/space-weather-alerts/raw/refs/heads/main/space_weather_alerts.sh > "$swa_folder"/space_weather_alerts.sh \
-  && chmod +x "$swa_folder"/space_weather_alerts.sh
+  echo "Cloning files to $swa_folder..."
+  if [[ $(command -v 'git') ]]; then
+    git clone https://github.com/tmiland/space-weather-alerts.git "$swa_folder" >/dev/null 2>&1
+  else
+    echo -e "This script requires git.\nProcess aborted"
+    exit 0
+  fi
+  chmod +x "$swa_folder"/space_weather_alerts.sh
   sudo ln -sfn "$swa_folder"/space_weather_alerts.sh /usr/local/bin/space_weather_alerts
   echo "Enabling systemd service"
   if ! [[ -d "$HOME"/.config/systemd/user ]]
   then
     mkdir -p "$HOME"/.config/systemd/user
   fi
-  curl -sSL https://github.com/tmiland/space-weather-alerts/raw/refs/heads/main/space_weather_alerts.service > "$HOME"/.config/systemd/user/space_weather_alerts.service
+  cp -rp  "$swa_folder"/space_weather_alerts.service "$HOME"/.config/systemd/user/space_weather_alerts.service
   systemctl enable space_weather_alerts.service
   systemctl start space_weather_alerts.service
   echo "Done."
