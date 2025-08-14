@@ -336,8 +336,9 @@ uninstall() {
     echo "Removing files in $swa_folder..."
     rm -rf "$swa_folder"
     sudo rm /usr/local/bin/space_weather_alerts
-    systemctl disable space_weather_alerts.service
-    systemctl stop space_weather_alerts.service
+    echo "Disabling systemd service"
+    systemctl --user disable space_weather_alerts.service >/dev/null 2>&1
+    systemctl --user stop space_weather_alerts.service
     rm "$HOME"/.config/systemd/user/space_weather_alerts.service
     echo "Done."
     exit 0
