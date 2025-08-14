@@ -6,7 +6,7 @@ After=graphical-session.target
 [Service]
 Type=simple
 Environment="DISPLAY=:0"
-ExecStart=screen -DmS swa /bin/bash -c '/usr/local/bin/swa -ar; exec bash'
+ExecStart=screen -DmS space_weather_alerts /bin/bash -c '/usr/local/bin/space_weather_alerts -ar; exec bash'
 Restart=on-failure
 
 [Install]

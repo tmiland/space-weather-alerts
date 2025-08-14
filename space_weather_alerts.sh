@@ -5,13 +5,13 @@
 
 
 ######################################################################
-####                           swa.sh                             ####
+####                   space weather alerts.sh                    ####
 ####            Script to get NOAA Space Weather Alerts           ####
 ####    Get NOAA Space Weather alerts straight to your desktop    ####
 ####                   Maintained by @tmiland                     ####
 ######################################################################
 
-# VERSION='1.0.0' # Must stay on line 14 for updater to fetch the numbers
+VERSION='1.0.0' # Must stay on line 14 for updater to fetch the numbers
 
 #------------------------------------------------------------------------------#
 #
@@ -38,7 +38,7 @@
 # SOFTWARE.
 #
 #------------------------------------------------------------------------------#
-# Symlink: ln -sfn ~/.scripts/swa.sh ~/.local/bin/swa
+# Symlink: ln -sfn ~/.scripts/space_weather_alerts.sh ~/.local/bin/space_weather_alerts
 ## For debugging purpose
 if [[ $* =~ "debug" ]]
 then
@@ -64,9 +64,9 @@ then
   mkdir -p "$swa_folder"
 fi
 # swa tmp file
-swa_tmp=$swa_folder/swa_tmp.json
+swa_tmp=$swa_folder/space_weather_alerts_tmp.json
 # swa alert file (json converted)
-swa_alert=$swa_folder/swa_alert.json
+swa_alert=$swa_folder/space_weather_alerts_alert.json
 # json function
 json() {
   # Run curl to tmp file

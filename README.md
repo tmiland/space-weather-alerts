@@ -4,14 +4,14 @@ Script to get [NOAA Space Weather Alerts](https://www.swpc.noaa.gov/products/ale
 
 Get NOAA Space Weather alerts straight to your desktop
 
-<a href="https://raw.githubusercontent.com/tmiland/Space-Weather-Alerts/main/assets/desktop_alert.png">![desktop_alert_full](https://raw.githubusercontent.com/tmiland/space-weather-alerts/main/assets/desktop_alert.png)</a>
+<a href="https://raw.githubusercontent.com/tmiland/space-weather-alerts/main/assets/desktop_alert.png">![desktop_alert_full](https://raw.githubusercontent.com/tmiland/space-weather-alerts/main/assets/desktop_alert.png)</a>
 
 ### Installation
 
 Download and install
 
 ```bash
-wget -qO- https://github.com/tmiland/Space-Weather-Alerts/raw/main/swa.sh | bash -s -- -i
+wget -qO- https://github.com/tmiland/space-weather-alerts/raw/main/space_weather_alerts.sh | bash -s -- -i
 ```
 
 ## Donations
