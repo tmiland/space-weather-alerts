@@ -50,12 +50,7 @@ fi
 # Get local timezone
 timezone=$(< /etc/timezone)
 date=$(TZ="$timezone" date)
-# Use Telegram
-use_telegram=$(cat "$swa_folder"/use_telegram.txt)
-# Telegram Bot token
-TELEGRAM_BOT_TOKEN=$(cat "$swa_folder"/telegram_bot_token.txt)
-# Telegram chat id
-TELEGRAM_CHAT_ID=$(cat "$swa_folder"/telegram_chat_id.txt)
+
 # Default duration (1 minute) to wait for new alerts
 duration=1
 # Default message to retrieve (0 is last)
@@ -64,6 +59,12 @@ msg_num=0
 swa_url=https://services.swpc.noaa.gov/products/alerts.json
 # Default folder
 swa_folder=$HOME/.space_weather_alerts
+# Use Telegram
+use_telegram=$(cat "$swa_folder"/use_telegram.txt)
+# Telegram Bot token
+TELEGRAM_BOT_TOKEN=$(cat "$swa_folder"/telegram_bot_token.txt)
+# Telegram chat id
+TELEGRAM_CHAT_ID=$(cat "$swa_folder"/telegram_chat_id.txt)
 # Create folder if it doesn't exist
 if [[ ! -d "$swa_folder" ]]
 then
