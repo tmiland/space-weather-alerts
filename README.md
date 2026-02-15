@@ -6,6 +6,10 @@ Get NOAA Space Weather alerts straight to your desktop
 
 <a href="https://raw.githubusercontent.com/tmiland/space-weather-alerts/main/assets/desktop_alert.png">![desktop_alert_full](https://raw.githubusercontent.com/tmiland/space-weather-alerts/main/assets/desktop_alert.png)</a>
 
+or Telegram
+
+<a href="https://raw.githubusercontent.com/tmiland/space-weather-alerts/main/assets/telegram_desktop_alert.png">![telegram_desktop_alert_full](https://raw.githubusercontent.com/tmiland/space-weather-alerts/main/assets/telegram_desktop_alert.png)</a>
+
 ### Installation
 
 Download and install
