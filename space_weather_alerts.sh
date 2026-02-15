@@ -50,6 +50,12 @@ fi
 # Get local timezone
 timezone=$(< /etc/timezone)
 date=$(TZ="$timezone" date)
+# Use Telegram
+use_telegram=$(cat "$swa_folder"/use_telegram.txt)
+# Telegram Bot token
+TELEGRAM_BOT_TOKEN=$(cat "$swa_folder"/telegram_bot_token.txt)
+# Telegram chat id
+TELEGRAM_CHAT_ID=$(cat "$swa_folder"/telegram_chat_id.txt)
 # Default duration (1 minute) to wait for new alerts
 duration=1
 # Default message to retrieve (0 is last)
@@ -301,6 +307,16 @@ auto-run() {
       echo "$alert_message"
       # Send notification to desktop
       notify-send --app-name="Space Weather Alert" --category=$scale --icon=$noaa_scale_img "Space Weather Alert" "$alert_message\n$alert_title"
+      # Send notifications to Telegram
+      if [[ $use_telegram == "yes" ]]; then
+        /usr/local/bin/telegram.bot \
+        --bottoken "$TELEGRAM_BOT_TOKEN" \
+        --chatid $TELEGRAM_CHAT_ID \
+        --photo "$noaa_scale_img" \
+        --warning \
+        --title "Space Weather Alert" \
+        --text "$alert_message"
+      fi
     else
       echo "No new alerts. Waiting $duration seconds for new alerts..."
     fi
@@ -327,7 +343,23 @@ install() {
   systemctl --user enable space_weather_alerts.service >/dev/null 2>&1
   systemctl --user start space_weather_alerts.service
   systemctl --user status space_weather_alerts.service
+  read -rp "do you wish to send messages to telegram? [y/n]" telegram_question
+  if [[ $telegram_question == "y" ]]; then
+    read -er -i "$TELEGRAM_CHAT_ID" -p  "       Enter telegram chat id: " TELEGRAM_CHAT_ID
+    read -ers -i "$TELEGRAM_BOT_TOKEN" -p "       Enter telegram bot token: " TELEGRAM_BOT_TOKEN
+    echo "$TELEGRAM_CHAT_ID" | tee "$swa_folder"/telegram_chat_id.txt >/dev/null 2>&1
+    echo "$TELEGRAM_BOT_TOKEN" | tee "$swa_folder"/telegram_bot_token.txt >/dev/null 2>&1
+    echo "yes" | tee "$swa_folder"/use_telegram.txt >/dev/null 2>&1
+    echo "Downloading dependency - telegram.bot"
+    wget https://github.com/beep-projects/telegram.bot/releases/latest/download/telegram.bot
+    chmod 755 ./telegram.bot
+    sudo ./telegram.bot --install
+    rm ./telegram.bot
+    echo "Installing curl and jq"
+    sudo apt install curl jq
+  fi
   echo "Done."
+  exit 0
 }
 
 uninstall() {
