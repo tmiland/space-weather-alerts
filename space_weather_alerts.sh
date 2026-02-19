@@ -104,6 +104,25 @@ auto-run() {
       noaa_scale2=$(grep -Po "WATCH: [A-z].*[0-9]" "$swa_alert" | grep -Po "[A-z][0-9]")
       noaa_k_index=$(grep -Po "K-index of .*[0-9]" "$swa_alert" | grep -Po "[0-9]")
       noaa_radio_emission=$(grep -Po "Type (I|II|III|IV|V|VI|VII|VIII|IX) Radio Emission" "$swa_alert")
+      noaa_solar_scale=$(grep -Po "Electron 2MeV Integral Flux exceeded [0-9]*.pfu" "$swa_alert" | grep -Po "[0-9]*.pfu")
+      # Switch for solar radiation scale
+      case $noaa_solar_scale in
+        100000pfu)
+          noaa_scale=S5
+        ;;
+        10000pfu)
+          noaa_scale=S4
+        ;;
+        1000pfu)
+          noaa_scale=S3
+        ;;
+        100pfu)
+          noaa_scale=S2
+        ;;
+        10pfu)
+          noaa_scale=S1
+        ;;
+      esac
       # Switch based on noaa scale
       if [[ -n $noaa_scale1 ]]
       then
@@ -117,6 +136,9 @@ auto-run() {
         then
           noaa_scale=$noaa_k_index
         fi
+      elif [[ -n $noaa_solar_scale ]]
+      then
+        noaa_scale=$noaa_solar_scale
       fi
       # Case for noaa scale
       case $noaa_scale in
