@@ -145,80 +145,94 @@ auto-run() {
         G5|S5|R5)
           scale=Extreme
           app_icon=dialog-warning-symbolic
+          sound=error
           telegram_icon=error
           ;;
         G4|S4|R4)
           scale=Severe
           app_icon=dialog-warning-symbolic
+          sound=error
           telegram_icon=error
           ;;
         G3|S3|R3)
           scale=Strong
           app_icon=dialog-warning-symbolic
+          sound=error
           telegram_icon=error
           ;;
         G2|S2|R2)
           scale=Moderate
           app_icon=dialog-warning-symbolic
+          sound=warning
           telegram_icon=warning
           ;;
         G1|S1|R1)
           scale=Minor
           app_icon=dialog-warning-symbolic
+          sound=warning
           telegram_icon=warning
           ;;
         1)
           scale=none
           noaa_scale=G
           app_icon=dialog-information-symbolic
+          sound=info
           telegram_icon=info
           ;;
         2)
           scale=none
           noaa_scale=G
           app_icon=dialog-information-symbolic
+          sound=info
           telegram_icon=info
           ;;
         3)
           scale=none
           noaa_scale=G
           app_icon=dialog-information-symbolic
+          sound=info
           telegram_icon=info
           ;;
         4)
           scale=none
           noaa_scale=G
           app_icon=dialog-information-symbolic
+          sound=info
           telegram_icon=info
           ;;
         5)
           scale=Minor
           noaa_scale=G1
           app_icon=dialog-warning-symbolic
+          sound=warning
           telegram_icon=warning
           ;;
         6)
           scale=Moderate
           noaa_scale=G2
           app_icon=dialog-warning-symbolic
+          sound=warning
           telegram_icon=warning
           ;;
         7)
           scale=Strong
           noaa_scale=G3
           app_icon=dialog-warning-symbolic
+          sound=error
           telegram_icon=error
           ;;
         8|9-)
           scale=Severe
           noaa_scale=G4
           app_icon=dialog-warning-symbolic
+          sound=error
           telegram_icon=error
           ;;
         9o)
           scale=Extreme
           noaa_scale=G5
           app_icon=dialog-warning-symbolic
+          sound=error
           telegram_icon=error
           ;;
       esac
@@ -357,7 +371,14 @@ auto-run() {
       printf "\n"
       echo "$alert_message"
       # Send notification to desktop
-      notify-send --app-name="Space Weather Alert" --category=$scale --app-icon=$app_icon --icon=$noaa_scale_img "Space Weather Alert" "$alert_message\n$alert_title"
+      notify-send \
+      --hint=string:sound-name:dialog-$sound \
+      --app-name="Space Weather Alert" \
+      --category=$scale \
+      --app-icon=$app_icon \
+      --icon=$noaa_scale_img \
+      "Space Weather Alert" \
+      "$alert_message\n$alert_title"
       # Send notifications to Telegram
       if [[ $use_telegram == "yes" ]]; then
         /usr/local/bin/telegram.bot \
