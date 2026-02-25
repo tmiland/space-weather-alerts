@@ -145,67 +145,81 @@ auto-run() {
         G5|S5|R5)
           scale=Extreme
           app_icon=dialog-warning-symbolic
+          telegram_icon=error
           ;;
         G4|S4|R4)
           scale=Severe
           app_icon=dialog-warning-symbolic
+          telegram_icon=error
           ;;
         G3|S3|R3)
           scale=Strong
           app_icon=dialog-warning-symbolic
+          telegram_icon=error
           ;;
         G2|S2|R2)
           scale=Moderate
           app_icon=dialog-warning-symbolic
+          telegram_icon=warning
           ;;
         G1|S1|R1)
           scale=Minor
           app_icon=dialog-warning-symbolic
+          telegram_icon=warning
           ;;
         1)
           scale=none
           noaa_scale=G
           app_icon=dialog-information-symbolic
+          telegram_icon=info
           ;;
         2)
           scale=none
           noaa_scale=G
           app_icon=dialog-information-symbolic
+          telegram_icon=info
           ;;
         3)
           scale=none
           noaa_scale=G
           app_icon=dialog-information-symbolic
+          telegram_icon=info
           ;;
         4)
           scale=none
           noaa_scale=G
           app_icon=dialog-information-symbolic
+          telegram_icon=info
           ;;
         5)
           scale=Minor
           noaa_scale=G1
           app_icon=dialog-warning-symbolic
+          telegram_icon=warning
           ;;
         6)
           scale=Moderate
           noaa_scale=G2
           app_icon=dialog-warning-symbolic
+          telegram_icon=warning
           ;;
         7)
           scale=Strong
           noaa_scale=G3
           app_icon=dialog-warning-symbolic
+          telegram_icon=error
           ;;
         8|9-)
           scale=Severe
           noaa_scale=G4
           app_icon=dialog-warning-symbolic
+          telegram_icon=error
           ;;
         9o)
           scale=Extreme
           noaa_scale=G5
           app_icon=dialog-warning-symbolic
+          telegram_icon=error
           ;;
       esac
       # noaa radio emission
@@ -350,7 +364,7 @@ auto-run() {
         --bottoken "$TELEGRAM_BOT_TOKEN" \
         --chatid "$TELEGRAM_CHAT_ID" \
         --photo "$noaa_scale_img" \
-        --warning \
+        --"$telegram_icon" \
         --title "Space Weather Alert" \
         --text "$alert_message"
       fi
