@@ -21,12 +21,12 @@ wget -qO- https://github.com/tmiland/space-weather-alerts/raw/main/space_weather
 ## Donations
 <a href="https://coindrop.to/tmiland" target="_blank"><img src="https://coindrop.to/embed-button.png" style="border-radius: 10px; height: 57px !important;width: 229px !important;" alt="Coindrop.to me"></img></a>
 
-#### Disclaimer 
+### Disclaimer 
 
 *** ***Use at own risk*** ***
 
 ### License
 
-[![MIT License Image](https://upload.wikimedia.org/wikipedia/commons/thumb/0/0c/MIT_logo.svg/220px-MIT_logo.svg.png)](https://github.com/tmiland/space-weather-alerts/blob/master/LICENSE)
+[![MIT License Image](https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/MIT_logo_2003-2023.svg/330px-MIT_logo_2003-2023.svg.png\?20250128192424)](https://github.com/tmiland/space-weather-alerts/blob/master/LICENSE)
 
 [MIT License](https://github.com/tmiland/bible.sh/blob/master/LICENSE)
