@@ -144,54 +144,68 @@ auto-run() {
       case $noaa_scale in
         G5|S5|R5)
           scale=Extreme
+          app_icon=dialog-warning-symbolic
           ;;
         G4|S4|R4)
           scale=Severe
+          app_icon=dialog-warning-symbolic
           ;;
         G3|S3|R3)
           scale=Strong
+          app_icon=dialog-warning-symbolic
           ;;
         G2|S2|R2)
           scale=Moderate
+          app_icon=dialog-warning-symbolic
           ;;
         G1|S1|R1)
           scale=Minor
+          app_icon=dialog-warning-symbolic
           ;;
         1)
           scale=none
           noaa_scale=G
+          app_icon=dialog-information-symbolic
           ;;
         2)
           scale=none
           noaa_scale=G
+          app_icon=dialog-information-symbolic
           ;;
         3)
           scale=none
           noaa_scale=G
+          app_icon=dialog-information-symbolic
           ;;
         4)
           scale=none
           noaa_scale=G
+          app_icon=dialog-information-symbolic
           ;;
         5)
           scale=Minor
           noaa_scale=G1
+          app_icon=dialog-warning-symbolic
           ;;
         6)
           scale=Moderate
           noaa_scale=G2
+          app_icon=dialog-warning-symbolic
           ;;
         7)
           scale=Strong
           noaa_scale=G3
+          app_icon=dialog-warning-symbolic
           ;;
         8|9-)
           scale=Severe
           noaa_scale=G4
+          app_icon=dialog-warning-symbolic
           ;;
         9o)
           scale=Extreme
           noaa_scale=G5
+          app_icon=dialog-warning-symbolic
           ;;
       esac
       # noaa radio emission
@@ -329,7 +343,7 @@ auto-run() {
       printf "\n"
       echo "$alert_message"
       # Send notification to desktop
-      notify-send --app-name="Space Weather Alert" --category=$scale --icon=$noaa_scale_img "Space Weather Alert" "$alert_message\n$alert_title"
+      notify-send --app-name="Space Weather Alert" --category=$scale --app-icon=$app_icon --icon=$noaa_scale_img "Space Weather Alert" "$alert_message\n$alert_title"
       # Send notifications to Telegram
       if [[ $use_telegram == "yes" ]]; then
         /usr/local/bin/telegram.bot \
