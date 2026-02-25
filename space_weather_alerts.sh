@@ -348,7 +348,7 @@ auto-run() {
       if [[ $use_telegram == "yes" ]]; then
         /usr/local/bin/telegram.bot \
         --bottoken "$TELEGRAM_BOT_TOKEN" \
-        --chatid $TELEGRAM_CHAT_ID \
+        --chatid "$TELEGRAM_CHAT_ID" \
         --photo "$noaa_scale_img" \
         --warning \
         --title "Space Weather Alert" \
