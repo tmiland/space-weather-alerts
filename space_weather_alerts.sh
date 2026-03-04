@@ -176,28 +176,28 @@ auto-run() {
           scale=none
           noaa_scale=G
           app_icon=dialog-information-symbolic
-          sound=info
+          sound=information
           telegram_icon=info
           ;;
         2)
           scale=none
           noaa_scale=G
           app_icon=dialog-information-symbolic
-          sound=info
+          sound=information
           telegram_icon=info
           ;;
         3)
           scale=none
           noaa_scale=G
           app_icon=dialog-information-symbolic
-          sound=info
+          sound=information
           telegram_icon=info
           ;;
         4)
           scale=none
           noaa_scale=G
           app_icon=dialog-information-symbolic
-          sound=info
+          sound=information
           telegram_icon=info
           ;;
         5)
