@@ -86,311 +86,322 @@ alert() {
 }
 # Calculate seconds to minutes
 duration=$(( duration * 60 ))
-
+# Expected HTTP status code (200 = OK)
+expected_status=200
+# Fetch the HTTP status code using curl
+status=$(curl -s -o /dev/null -w "%{http_code}" "$swa_url")
 # Auto run function
 auto-run() {
   while true
   do
     # Alert variables used for comparison
-    alert_serial_number=$(alert $msg_num | grep "Serial Number:" | sed "s|Serial Number: ||g")
-    local_alert_serial_number=$(grep "Serial Number:" "$swa_alert" | sed "s|Serial Number: ||g")
-    # If Issue Time is newer than local Issue Time
-    if [[ "$local_alert_serial_number" != "$alert_serial_number" ]]
-    then
-      # Then run script
-      alert $msg_num > "$swa_alert"
-      # Get NOAA scale
-      noaa_scale1=$(grep -Po "NOAA Scale: [A-z].*[0-9]" "$swa_alert" | grep -Po "[A-z][0-9]")
-      noaa_scale2=$(grep -Po "WATCH: [A-z].*[0-9]" "$swa_alert" | grep -Po "[A-z][0-9]")
-      noaa_k_index=$(grep -Po "K-index of .*[0-9]" "$swa_alert" | grep -Po "[0-9]")
-      noaa_radio_emission=$(grep -Po "Type (I|II|III|IV|V|VI|VII|VIII|IX) Radio Emission" "$swa_alert")
-      noaa_solar_scale=$(grep -Po "Electron 2MeV Integral Flux exceeded [0-9]*.pfu" "$swa_alert" | grep -Po "[0-9]*.pfu")
-      # Switch for solar radiation scale
-      case $noaa_solar_scale in
-        100000pfu)
-          noaa_scale=S5
-        ;;
-        10000pfu)
-          noaa_scale=S4
-        ;;
-        1000pfu)
-          noaa_scale=S3
-        ;;
-        100pfu)
-          noaa_scale=S2
-        ;;
-        10pfu)
-          noaa_scale=S1
-        ;;
-      esac
-      # Switch based on noaa scale
-      if [[ -n $noaa_scale1 ]]
-      then
-        noaa_scale=$noaa_scale1
-      elif [[ -n $noaa_scale2 ]]
-      then
-        noaa_scale=$noaa_scale2
-      elif [[ -z $noaa_scale1 ]] || [[ -z $noaa_scale2 ]]
-      then
-        if [[ -n $noaa_k_index ]]
+    alert_serial_number=$(alert $msg_num | grep -oP "Serial Number: [0-9].*" | sed "s|Serial Number: ||g" | head -n 1)
+    local_alert_serial_number=$(grep -oP "Serial Number: [0-9].*" "$swa_alert" | sed "s|Serial Number: ||g" | head -n 1)
+    # https://linuxvox.com/blog/linux-script-with-curl-to-check-webservice-is-up/
+    if [ "$status" -eq "$expected_status" ]; then
+      echo "Webservice is UP (Status: $status)"
+      if [ -n "$alert_serial_number" ]; then
+        # If Issue Time is newer than local Issue Time
+        if [[ "$local_alert_serial_number" != "$alert_serial_number" ]]
         then
-          noaa_scale=$noaa_k_index
+          # Then run script
+          alert $msg_num > "$swa_alert"
+          # Get NOAA scale
+          noaa_scale1=$(grep -Po "NOAA Scale: [A-z].*[0-9]" "$swa_alert" | grep -Po "[A-z][0-9]")
+          noaa_scale2=$(grep -Po "WATCH: [A-z].*[0-9]" "$swa_alert" | grep -Po "[A-z][0-9]")
+          noaa_k_index=$(grep -Po "K-index of .*[0-9]" "$swa_alert" | grep -Po "[0-9]")
+          noaa_radio_emission=$(grep -Po "Type (I|II|III|IV|V|VI|VII|VIII|IX) Radio Emission" "$swa_alert")
+          noaa_solar_scale=$(grep -Po "Electron 2MeV Integral Flux exceeded [0-9]*.pfu" "$swa_alert" | grep -Po "[0-9]*.pfu")
+          # Switch for solar radiation scale
+          case $noaa_solar_scale in
+            100000pfu)
+              noaa_scale=S5
+            ;;
+            10000pfu)
+              noaa_scale=S4
+            ;;
+            1000pfu)
+              noaa_scale=S3
+            ;;
+            100pfu)
+              noaa_scale=S2
+            ;;
+            10pfu)
+              noaa_scale=S1
+            ;;
+          esac
+          # Switch based on noaa scale
+          if [[ -n $noaa_scale1 ]]
+          then
+            noaa_scale=$noaa_scale1
+          elif [[ -n $noaa_scale2 ]]
+          then
+            noaa_scale=$noaa_scale2
+          elif [[ -z $noaa_scale1 ]] || [[ -z $noaa_scale2 ]]
+          then
+            if [[ -n $noaa_k_index ]]
+            then
+              noaa_scale=$noaa_k_index
+            fi
+          elif [[ -n $noaa_solar_scale ]]
+          then
+            noaa_scale=$noaa_solar_scale
+          fi
+          # Case for noaa scale
+          case $noaa_scale in
+            G5|S5|R5)
+              scale=Extreme
+              app_icon=dialog-warning-symbolic
+              sound=error
+              telegram_icon=error
+              ;;
+            G4|S4|R4)
+              scale=Severe
+              app_icon=dialog-warning-symbolic
+              sound=error
+              telegram_icon=error
+              ;;
+            G3|S3|R3)
+              scale=Strong
+              app_icon=dialog-warning-symbolic
+              sound=error
+              telegram_icon=error
+              ;;
+            G2|S2|R2)
+              scale=Moderate
+              app_icon=dialog-warning-symbolic
+              sound=warning
+              telegram_icon=warning
+              ;;
+            G1|S1|R1)
+              scale=Minor
+              app_icon=dialog-warning-symbolic
+              sound=warning
+              telegram_icon=warning
+              ;;
+            1)
+              scale=none
+              noaa_scale=G
+              app_icon=dialog-information-symbolic
+              sound=information
+              telegram_icon=info
+              ;;
+            2)
+              scale=none
+              noaa_scale=G
+              app_icon=dialog-information-symbolic
+              sound=information
+              telegram_icon=info
+              ;;
+            3)
+              scale=none
+              noaa_scale=G
+              app_icon=dialog-information-symbolic
+              sound=information
+              telegram_icon=info
+              ;;
+            4)
+              scale=none
+              noaa_scale=G
+              app_icon=dialog-information-symbolic
+              sound=information
+              telegram_icon=info
+              ;;
+            5)
+              scale=Minor
+              noaa_scale=G1
+              app_icon=dialog-warning-symbolic
+              sound=warning
+              telegram_icon=warning
+              ;;
+            6)
+              scale=Moderate
+              noaa_scale=G2
+              app_icon=dialog-warning-symbolic
+              sound=warning
+              telegram_icon=warning
+              ;;
+            7)
+              scale=Strong
+              noaa_scale=G3
+              app_icon=dialog-warning-symbolic
+              sound=error
+              telegram_icon=error
+              ;;
+            8|9-)
+              scale=Severe
+              noaa_scale=G4
+              app_icon=dialog-warning-symbolic
+              sound=error
+              telegram_icon=error
+              ;;
+            9o)
+              scale=Extreme
+              noaa_scale=G5
+              app_icon=dialog-warning-symbolic
+              sound=error
+              telegram_icon=error
+              ;;
+          esac
+          # noaa radio emission
+          if [[ $noaa_radio_emission =~ "Type I Radio Emission" ]]
+          then
+            noaa_scale=R1
+          elif [[ $noaa_radio_emission =~ "Type II Radio Emission" ]]
+          then
+            noaa_scale=R2
+          elif [[ $noaa_radio_emission =~ "Type III Radio Emission" ]]
+          then
+            noaa_scale=R3
+          elif [[ $noaa_radio_emission =~ "Type IV Radio Emission" ]]
+          then
+            noaa_scale=R4
+          elif [[ $noaa_radio_emission =~ "Type V Radio Emission" ]]
+          then
+            noaa_scale=R5
+          fi
+          if [[ $(command -v 'timedatectl') ]]
+          then
+            date=$(timedatectl | grep "Local time" | tr -s ' ')
+          fi
+          # Get time function
+          get_time() {
+            grep "$1" "$swa_alert"
+          }
+          # Get Valid From in pieces
+          valid_from_month=$(get_time "Valid From" | cut -d ' ' -f4)
+          valid_from_day=$(get_time "Valid From" | cut -d ' ' -f5)
+          valid_from_year=$(get_time "Valid From" | cut -d ' ' -f3)
+          valid_from_time=$(get_time "Valid From" | cut -d ' ' -f6)
+          # Put Valid From pieces together
+          valid_from=$(echo "$valid_from_month" "$valid_from_day", "$valid_from_year" "$valid_from_time")
+          # Get Valid To in pieces
+          valid_to_month=$(get_time "Valid To" | cut -d ' ' -f4)
+          valid_to_day=$(get_time "Valid To" | cut -d ' ' -f5)
+          valid_to_year=$(get_time "Valid To" | cut -d ' ' -f3)
+          valid_to_time=$(get_time "Valid To" | cut -d ' ' -f6)
+          # Put Valid To pieces together
+          valid_to=$(echo "$valid_to_month" "$valid_to_day", "$valid_to_year" "$valid_to_time")
+          # Get issue time in pieces
+          issue_time_month=$(get_time "Issue Time" | cut -d ' ' -f4)
+          issue_time_day=$(get_time "Issue Time" | cut -d ' ' -f5)
+          issue_time_year=$(get_time "Issue Time" | cut -d ' ' -f3)
+          issue_time_time=$(get_time "Issue Time" | cut -d ' ' -f6)
+          # Put issue time pieces together
+          issue_time=$(echo "$issue_time_month" "$issue_time_day", "$issue_time_year" "$issue_time_time")
+          # Get Now Valid Until in pieces
+          now_valid_until_month=$(get_time "Now Valid Until" | cut -d ' ' -f5)
+          now_valid_until_day=$(get_time "Now Valid Until" | cut -d ' ' -f6)
+          now_valid_until_year=$(get_time "Now Valid Until" | cut -d ' ' -f4)
+          now_valid_until_time=$(get_time "Now Valid Until" | cut -d ' ' -f7)
+          # Put Now Valid Until pieces together
+          now_valid_until=$(echo "$now_valid_until_month" "$now_valid_until_day", "$now_valid_until_year" "$now_valid_until_time")
+          # Get Threshold Reached in pieces
+          threshold_reached_month=$(get_time "Threshold Reached" | sed 's/^ *//g' | cut -d ' ' -f4)
+          threshold_reached_day=$(get_time "Threshold Reached" | sed 's/^ *//g' | cut -d ' ' -f5)
+          threshold_reached_year=$(get_time "Threshold Reached" | sed 's/^ *//g' | cut -d ' ' -f3)
+          threshold_reached_time=$(get_time "Threshold Reached" | sed 's/^ *//g' | cut -d ' ' -f6)
+          # Put Threshold Reached pieces together
+          threshold_reached=$(echo "$threshold_reached_month" "$threshold_reached_day", "$threshold_reached_year" "$threshold_reached_time")
+          # Get Begin Time in pieces
+          begin_time_month=$(get_time "Begin Time" | sed 's/^ *//g' | cut -d ' ' -f4)
+          begin_time_day=$(get_time "Begin Time" | sed 's/^ *//g' | cut -d ' ' -f5)
+          begin_time_year=$(get_time "Begin Time" | sed 's/^ *//g' | cut -d ' ' -f3)
+          begin_time_time=$(get_time "Begin Time" | sed 's/^ *//g' | cut -d ' ' -f6)
+          # Put Begin Time pieces together
+          begin_time=$(echo "$begin_time_month" "$begin_time_day", "$begin_time_year" "$begin_time_time")
+          # Get Maximum Time in pieces
+          maximum_time_month=$(get_time "Maximum Time" | sed 's/^ *//g' | cut -d ' ' -f4)
+          maximum_time_day=$(get_time "Maximum Time" | sed 's/^ *//g' | cut -d ' ' -f5)
+          maximum_time_year=$(get_time "Maximum Time" | sed 's/^ *//g' | cut -d ' ' -f3)
+          maximum_time_time=$(get_time "Maximum Time" | sed 's/^ *//g' | cut -d ' ' -f6)
+          # Put Maximum Time pieces together
+          maximum_time=$(echo "$maximum_time_month" "$maximum_time_day", "$maximum_time_year" "$maximum_time_time")
+          # Get End Time in pieces
+          end_time_month=$(get_time "End Time" | sed 's/^ *//g' | cut -d ' ' -f4)
+          end_time_day=$(get_time "End Time" | sed 's/^ *//g' | cut -d ' ' -f5)
+          end_time_year=$(get_time "End Time" | sed 's/^ *//g' | cut -d ' ' -f3)
+          end_time_time=$(get_time "End Time" | sed 's/^ *//g' | cut -d ' ' -f6)
+          # Put End Time pieces together
+          end_time=$(echo "$end_time_month" "$end_time_day", "$end_time_year" "$end_time_time")
+          # Convert times to local timezone
+          if [[ -n "$valid_from_month" ]]
+          then
+            new_valid_from=$(TZ="$timezone" date -d "$valid_from" +"%Y %b %d %H%M %Z")
+            sed -i "s|Valid From: .*|Valid From: $new_valid_from|g" "$swa_alert"
+          fi
+          if [[ -n "$valid_to_month" ]]
+          then
+            new_valid_to=$(TZ="$timezone" date -d "$valid_to" +"%Y %b %d %H%M %Z")
+            sed -i "s|Valid To: .*|Valid To: $new_valid_to|g" "$swa_alert"
+          fi
+          if [[ -n "$issue_time_month" ]]
+          then
+            new_issue_time=$(TZ="$timezone" date -d "$issue_time" +"%Y %b %d %H%M %Z")
+            sed -i "s|Issue Time: .*|Issue Time: $new_issue_time|g" "$swa_alert"
+          fi
+          if [[ -n "$now_valid_until_month" ]]
+          then
+            new_now_valid_until=$(TZ="$timezone" date -d "$now_valid_until" +"%Y %b %d %H%M %Z")
+            sed -i "s|Now Valid Until: .*|Now Valid Until: $new_now_valid_until|g" "$swa_alert"
+          fi
+          if [[ -n "$threshold_reached_month" ]]
+          then
+            new_threshold_reached=$(TZ="$timezone" date -d "$threshold_reached" +"%Y %b %d %H%M %Z")
+            sed -i "s|Threshold Reached: .*|Threshold Reached: $new_threshold_reached|g" "$swa_alert"
+          fi
+          if [[ -n "$begin_time_month" ]]
+          then
+            new_begin_time=$(TZ="$timezone" date -d "$begin_time" +"%Y %b %d %H%M %Z")
+            sed -i "s|Begin Time: .*|Begin Time: $new_begin_time|g" "$swa_alert"
+          fi
+          if [[ -n "$maximum_time_month" ]]
+          then
+            new_maximum_time=$(TZ="$timezone" date -d "$maximum_time" +"%Y %b %d %H%M %Z")
+            sed -i "s|Maximum Time: .*|Maximum Time: $new_maximum_time|g" "$swa_alert"
+          fi
+          if [[ -n "$end_time_month" ]]
+          then
+            new_end_time=$(TZ="$timezone" date -d "$end_time" +"%Y %b %d %H%M %Z")
+            sed -i "s|End Time: .*|End Time: $new_end_time|g" "$swa_alert"
+          fi
+          # Add received time to msg
+          sed -i "/Issue Time: /a Received $date" "$swa_alert"
+          # Generate images used in notification
+          noaa_scale_img="$swa_folder/assets/new/$noaa_scale.png"
+          # Alert title
+          alert_title=$(grep "WATCH:" "$swa_alert" | sed "s|WATCH: ||g")
+          # Alert message
+          alert_message=$(< "$swa_alert")
+          # Print alert
+          echo "$alert_title"
+          printf "\n"
+          echo "$alert_message"
+          # Send notification to desktop
+          notify-send \
+          --hint=string:sound-name:dialog-$sound \
+          --app-name="Space Weather Alert" \
+          --category=$scale \
+          --app-icon=$app_icon \
+          --icon=$noaa_scale_img \
+          "Space Weather Alert" \
+          "$alert_message\n$alert_title"
+          # Send notifications to Telegram
+          if [[ $use_telegram == "yes" ]]; then
+            /usr/local/bin/telegram.bot \
+            --bottoken "$TELEGRAM_BOT_TOKEN" \
+            --chatid "$TELEGRAM_CHAT_ID" \
+            --photo "$noaa_scale_img" \
+            --"$telegram_icon" \
+            --title "Space Weather Alert" \
+            --text "$alert_message"
+          fi
+        else
+          echo "No new alerts. Waiting $duration seconds for new alerts..."
         fi
-      elif [[ -n $noaa_solar_scale ]]
-      then
-        noaa_scale=$noaa_solar_scale
-      fi
-      # Case for noaa scale
-      case $noaa_scale in
-        G5|S5|R5)
-          scale=Extreme
-          app_icon=dialog-warning-symbolic
-          sound=error
-          telegram_icon=error
-          ;;
-        G4|S4|R4)
-          scale=Severe
-          app_icon=dialog-warning-symbolic
-          sound=error
-          telegram_icon=error
-          ;;
-        G3|S3|R3)
-          scale=Strong
-          app_icon=dialog-warning-symbolic
-          sound=error
-          telegram_icon=error
-          ;;
-        G2|S2|R2)
-          scale=Moderate
-          app_icon=dialog-warning-symbolic
-          sound=warning
-          telegram_icon=warning
-          ;;
-        G1|S1|R1)
-          scale=Minor
-          app_icon=dialog-warning-symbolic
-          sound=warning
-          telegram_icon=warning
-          ;;
-        1)
-          scale=none
-          noaa_scale=G
-          app_icon=dialog-information-symbolic
-          sound=information
-          telegram_icon=info
-          ;;
-        2)
-          scale=none
-          noaa_scale=G
-          app_icon=dialog-information-symbolic
-          sound=information
-          telegram_icon=info
-          ;;
-        3)
-          scale=none
-          noaa_scale=G
-          app_icon=dialog-information-symbolic
-          sound=information
-          telegram_icon=info
-          ;;
-        4)
-          scale=none
-          noaa_scale=G
-          app_icon=dialog-information-symbolic
-          sound=information
-          telegram_icon=info
-          ;;
-        5)
-          scale=Minor
-          noaa_scale=G1
-          app_icon=dialog-warning-symbolic
-          sound=warning
-          telegram_icon=warning
-          ;;
-        6)
-          scale=Moderate
-          noaa_scale=G2
-          app_icon=dialog-warning-symbolic
-          sound=warning
-          telegram_icon=warning
-          ;;
-        7)
-          scale=Strong
-          noaa_scale=G3
-          app_icon=dialog-warning-symbolic
-          sound=error
-          telegram_icon=error
-          ;;
-        8|9-)
-          scale=Severe
-          noaa_scale=G4
-          app_icon=dialog-warning-symbolic
-          sound=error
-          telegram_icon=error
-          ;;
-        9o)
-          scale=Extreme
-          noaa_scale=G5
-          app_icon=dialog-warning-symbolic
-          sound=error
-          telegram_icon=error
-          ;;
-      esac
-      # noaa radio emission
-      if [[ $noaa_radio_emission =~ "Type I Radio Emission" ]]
-      then
-        noaa_scale=R1
-      elif [[ $noaa_radio_emission =~ "Type II Radio Emission" ]]
-      then
-        noaa_scale=R2
-      elif [[ $noaa_radio_emission =~ "Type III Radio Emission" ]]
-      then
-        noaa_scale=R3
-      elif [[ $noaa_radio_emission =~ "Type IV Radio Emission" ]]
-      then
-        noaa_scale=R4
-      elif [[ $noaa_radio_emission =~ "Type V Radio Emission" ]]
-      then
-        noaa_scale=R5
-      fi
-      if [[ $(command -v 'timedatectl') ]]
-      then
-        date=$(timedatectl | grep "Local time" | tr -s ' ')
-      fi
-      # Get time function
-      get_time() {
-        grep "$1" "$swa_alert"
-      }
-      # Get Valid From in pieces
-      valid_from_month=$(get_time "Valid From" | cut -d ' ' -f4)
-      valid_from_day=$(get_time "Valid From" | cut -d ' ' -f5)
-      valid_from_year=$(get_time "Valid From" | cut -d ' ' -f3)
-      valid_from_time=$(get_time "Valid From" | cut -d ' ' -f6)
-      # Put Valid From pieces together
-      valid_from=$(echo "$valid_from_month" "$valid_from_day", "$valid_from_year" "$valid_from_time")
-      # Get Valid To in pieces
-      valid_to_month=$(get_time "Valid To" | cut -d ' ' -f4)
-      valid_to_day=$(get_time "Valid To" | cut -d ' ' -f5)
-      valid_to_year=$(get_time "Valid To" | cut -d ' ' -f3)
-      valid_to_time=$(get_time "Valid To" | cut -d ' ' -f6)
-      # Put Valid To pieces together
-      valid_to=$(echo "$valid_to_month" "$valid_to_day", "$valid_to_year" "$valid_to_time")
-      # Get issue time in pieces
-      issue_time_month=$(get_time "Issue Time" | cut -d ' ' -f4)
-      issue_time_day=$(get_time "Issue Time" | cut -d ' ' -f5)
-      issue_time_year=$(get_time "Issue Time" | cut -d ' ' -f3)
-      issue_time_time=$(get_time "Issue Time" | cut -d ' ' -f6)
-      # Put issue time pieces together
-      issue_time=$(echo "$issue_time_month" "$issue_time_day", "$issue_time_year" "$issue_time_time")
-      # Get Now Valid Until in pieces
-      now_valid_until_month=$(get_time "Now Valid Until" | cut -d ' ' -f5)
-      now_valid_until_day=$(get_time "Now Valid Until" | cut -d ' ' -f6)
-      now_valid_until_year=$(get_time "Now Valid Until" | cut -d ' ' -f4)
-      now_valid_until_time=$(get_time "Now Valid Until" | cut -d ' ' -f7)
-      # Put Now Valid Until pieces together
-      now_valid_until=$(echo "$now_valid_until_month" "$now_valid_until_day", "$now_valid_until_year" "$now_valid_until_time")
-      # Get Threshold Reached in pieces
-      threshold_reached_month=$(get_time "Threshold Reached" | sed 's/^ *//g' | cut -d ' ' -f4)
-      threshold_reached_day=$(get_time "Threshold Reached" | sed 's/^ *//g' | cut -d ' ' -f5)
-      threshold_reached_year=$(get_time "Threshold Reached" | sed 's/^ *//g' | cut -d ' ' -f3)
-      threshold_reached_time=$(get_time "Threshold Reached" | sed 's/^ *//g' | cut -d ' ' -f6)
-      # Put Threshold Reached pieces together
-      threshold_reached=$(echo "$threshold_reached_month" "$threshold_reached_day", "$threshold_reached_year" "$threshold_reached_time")
-      # Get Begin Time in pieces
-      begin_time_month=$(get_time "Begin Time" | sed 's/^ *//g' | cut -d ' ' -f4)
-      begin_time_day=$(get_time "Begin Time" | sed 's/^ *//g' | cut -d ' ' -f5)
-      begin_time_year=$(get_time "Begin Time" | sed 's/^ *//g' | cut -d ' ' -f3)
-      begin_time_time=$(get_time "Begin Time" | sed 's/^ *//g' | cut -d ' ' -f6)
-      # Put Begin Time pieces together
-      begin_time=$(echo "$begin_time_month" "$begin_time_day", "$begin_time_year" "$begin_time_time")
-      # Get Maximum Time in pieces
-      maximum_time_month=$(get_time "Maximum Time" | sed 's/^ *//g' | cut -d ' ' -f4)
-      maximum_time_day=$(get_time "Maximum Time" | sed 's/^ *//g' | cut -d ' ' -f5)
-      maximum_time_year=$(get_time "Maximum Time" | sed 's/^ *//g' | cut -d ' ' -f3)
-      maximum_time_time=$(get_time "Maximum Time" | sed 's/^ *//g' | cut -d ' ' -f6)
-      # Put Maximum Time pieces together
-      maximum_time=$(echo "$maximum_time_month" "$maximum_time_day", "$maximum_time_year" "$maximum_time_time")
-      # Get End Time in pieces
-      end_time_month=$(get_time "End Time" | sed 's/^ *//g' | cut -d ' ' -f4)
-      end_time_day=$(get_time "End Time" | sed 's/^ *//g' | cut -d ' ' -f5)
-      end_time_year=$(get_time "End Time" | sed 's/^ *//g' | cut -d ' ' -f3)
-      end_time_time=$(get_time "End Time" | sed 's/^ *//g' | cut -d ' ' -f6)
-      # Put End Time pieces together
-      end_time=$(echo "$end_time_month" "$end_time_day", "$end_time_year" "$end_time_time")
-      # Convert times to local timezone
-      if [[ -n "$valid_from_month" ]]
-      then
-        new_valid_from=$(TZ="$timezone" date -d "$valid_from" +"%Y %b %d %H%M %Z")
-        sed -i "s|Valid From: .*|Valid From: $new_valid_from|g" "$swa_alert"
-      fi
-      if [[ -n "$valid_to_month" ]]
-      then
-        new_valid_to=$(TZ="$timezone" date -d "$valid_to" +"%Y %b %d %H%M %Z")
-        sed -i "s|Valid To: .*|Valid To: $new_valid_to|g" "$swa_alert"
-      fi
-      if [[ -n "$issue_time_month" ]]
-      then
-        new_issue_time=$(TZ="$timezone" date -d "$issue_time" +"%Y %b %d %H%M %Z")
-        sed -i "s|Issue Time: .*|Issue Time: $new_issue_time|g" "$swa_alert"
-      fi
-      if [[ -n "$now_valid_until_month" ]]
-      then
-        new_now_valid_until=$(TZ="$timezone" date -d "$now_valid_until" +"%Y %b %d %H%M %Z")
-        sed -i "s|Now Valid Until: .*|Now Valid Until: $new_now_valid_until|g" "$swa_alert"
-      fi
-      if [[ -n "$threshold_reached_month" ]]
-      then
-        new_threshold_reached=$(TZ="$timezone" date -d "$threshold_reached" +"%Y %b %d %H%M %Z")
-        sed -i "s|Threshold Reached: .*|Threshold Reached: $new_threshold_reached|g" "$swa_alert"
-      fi
-      if [[ -n "$begin_time_month" ]]
-      then
-        new_begin_time=$(TZ="$timezone" date -d "$begin_time" +"%Y %b %d %H%M %Z")
-        sed -i "s|Begin Time: .*|Begin Time: $new_begin_time|g" "$swa_alert"
-      fi
-      if [[ -n "$maximum_time_month" ]]
-      then
-        new_maximum_time=$(TZ="$timezone" date -d "$maximum_time" +"%Y %b %d %H%M %Z")
-        sed -i "s|Maximum Time: .*|Maximum Time: $new_maximum_time|g" "$swa_alert"
-      fi
-      if [[ -n "$end_time_month" ]]
-      then
-        new_end_time=$(TZ="$timezone" date -d "$end_time" +"%Y %b %d %H%M %Z")
-        sed -i "s|End Time: .*|End Time: $new_end_time|g" "$swa_alert"
-      fi
-      # Add received time to msg
-      sed -i "/Issue Time: /a Received $date" "$swa_alert"
-      # Generate images used in notification
-      noaa_scale_img="$swa_folder/assets/new/$noaa_scale.png"
-      # Alert title
-      alert_title=$(grep "WATCH:" "$swa_alert" | sed "s|WATCH: ||g")
-      # Alert message
-      alert_message=$(< "$swa_alert")
-      # Print alert
-      echo "$alert_title"
-      printf "\n"
-      echo "$alert_message"
-      # Send notification to desktop
-      notify-send \
-      --hint=string:sound-name:dialog-$sound \
-      --app-name="Space Weather Alert" \
-      --category=$scale \
-      --app-icon=$app_icon \
-      --icon=$noaa_scale_img \
-      "Space Weather Alert" \
-      "$alert_message\n$alert_title"
-      # Send notifications to Telegram
-      if [[ $use_telegram == "yes" ]]; then
-        /usr/local/bin/telegram.bot \
-        --bottoken "$TELEGRAM_BOT_TOKEN" \
-        --chatid "$TELEGRAM_CHAT_ID" \
-        --photo "$noaa_scale_img" \
-        --"$telegram_icon" \
-        --title "Space Weather Alert" \
-        --text "$alert_message"
       fi
     else
-      echo "No new alerts. Waiting $duration seconds for new alerts..."
+      echo "Webservice is DOWN (Status: $status)"
     fi
     sleep $duration # request alert once / minute.
   done # End of forever loop
